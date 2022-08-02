@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <meta name="description" content="" />
+    <meta name="author" content="" />
+    <title>Car Charger</title>
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <!-- Core theme CSS (includes Bootstrap)-->
+    <link href="bootstrap.min.css" rel="stylesheet" />
+    <script src="bootstrap.bundle.min.js"></script>
+    <!-- <script src="jquery.min.js"></script> -->
+
+    <style>
+        body {
+            background-color: black;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            background-position: center;
+        }
+    </style>
+</head>
+
+<body style="background-color:rgb(10, 9, 9);">
+    <div class="col-sm-6 offset-md-3 my-auto">
+        <div class="card card-block w-30 mx-auto">
+            <nav class="navbar navbar-expand-lg navbar-light bg-light border-bottom">
+                <div class="container-fluid">
+                    <p class="text-left" id="state-label-l"></p>
+                    <div class="d-flex">
+                        <div data-feather="clock"></div>
+                        <p class="text-right" id="state-label-r">
+                    </div>
+                </div>
+            </nav>
+            <button id="state-button" type="button" class="btn btn-primary btn-lg"
+                onclick="toggleBoost()">BOOST</button>
+        </div>
+    </div>
+</body>
+<script>
+    //===========================================================  
+    // Date/Time helpers
+    const months = [
+        'January',
+        'February',
+        'March',
+        'April',
+        'May',
+        'June',
+        'July',
+        'August',
+        'September',
+        'October',
+        'November',
+        'December'
+    ];
+    const days = [
+        'Sun',
+        'Mon',
+        'Tue',
+        'Wed',
+        'Thu',
+        'Fri',
+        'Sat'
+    ];
+
+    // Format date/time e.g Fri 13/10/2021
+    function formatDate(dateTime) {
+        var dayName = days[dateTime.getDay()];
+        var day = dateTime.getDate();
+        var month = dateTime.getMonth() + 1;
+        var year = dateTime.getFullYear();
+        return dayName + ' ' + day.toString() + '/' + month.toString() + '/' + year.toString();
+    }
+    //====================================================
+    function getStatus() {
+        var xhttpTime = new XMLHttpRequest();
+        xhttpTime.onreadystatechange = function () {
+            if (this.readyState == 4 && this.status == 200) {
+                var json = this.responseText;
+                var status = JSON.parse(json);
+                var state = status["st"];
+                var time = status["dt"]
+                updateState(state, time);
+            }
+        };
+        xhttpTime.open("GET", "status", true);
+        xhttpTime.send();
+    }
+
+    function toggleBoost() {
+        var xhttpBoost = new XMLHttpRequest();
+        xhttpBoost.onreadystatechange = function () {
+            if (this.readyState == 4 && this.status == 200) {
+                // Handle failure? Update state?
+            }
+        };
+        xhttpBoost.open("POST", "boost", true);
+        xhttpBoost.send();
+    }
+
+    function updateState(state, time) {
+        document.getElementById('state-label-l').innerHTML = time.replace("T", " ");
+        if (state == 0) {
+            // Blue car = OFF
+            document.getElementById('state-button').innerHTML = "START BOOST";
+            document.getElementById('state-button').ariaDisabled = false;
+            document.getElementById('state-label-r').innerHTML = "State = OFF";
+            document.body.style.backgroundImage = "url('leaf-b.png')";
+        }
+        else if (state == 1) {
+            // Green car = ON, can't boost, hide button
+            document.getElementById('state-button').innerHTML = "RUNNING";
+            document.getElementById('state-button').ariaDisabled = true;
+            document.getElementById('state-label-r').innerHTML = "State = ON";
+            document.body.style.backgroundImage = "url('leaf-g.png')";
+        }
+        else if (state == 2) {
+            // Red car = BOOST
+            document.getElementById('state-button').innerHTML = "STOP BOOST";
+            document.getElementById('state-button').ariaDisabled = false;
+            document.getElementById('state-label-r').innerHTML = "State = BOOST";
+            document.body.style.backgroundImage = "url('leaf-r.png')";
+        }
+    }
+
+    /* Fast update timer, update date/time and state */
+    setInterval(getStatus, 1000);
+</script>
+
+</html>
